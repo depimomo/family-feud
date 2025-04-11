@@ -1,0 +1,43 @@
+{
+    "levels": [
+      {
+        "question": "Name a popular food item you'd find at a restaurant.",
+        "answers": [
+          { "text": "Pizza", "points": 35, "isRevealed": false },
+          { "text": "Burger", "points": 25, "isRevealed": false },
+          { "text": "Sushi", "points": 15, "isRevealed": false },
+          { "text": "Pasta", "points": 10, "isRevealed": false },
+          { "text": "Tacos", "points": 8, "isRevealed": false },
+          { "text": "Salad", "points": 4, "isRevealed": false },
+          { "text": "Steak", "points": 2, "isRevealed": false },
+          { "text": "Ice Cream", "points": 1, "isRevealed": false }
+        ]
+      },
+      {
+        "question": "Name something people do to stay healthy.",
+        "answers": [
+          { "text": "Exercise", "points": 40, "isRevealed": false },
+          { "text": "Eat Well", "points": 30, "isRevealed": false },
+          { "text": "Sleep", "points": 15, "isRevealed": false },
+          { "text": "Drink Water", "points": 8, "isRevealed": false },
+          { "text": "Meditate", "points": 4, "isRevealed": false },
+          { "text": "Take Vitamins", "points": 2, "isRevealed": false },
+          { "text": "Regular Checkups", "points": 1, "isRevealed": false },
+          { "text": "Reduce Stress", "points": 1, "isRevealed": false }
+        ]
+      },
+      {
+        "question": "Name a popular vacation destination.",
+        "answers": [
+          { "text": "Hawaii", "points": 35, "isRevealed": false },
+          { "text": "Paris", "points": 25, "isRevealed": false },
+          { "text": "Disney World", "points": 20, "isRevealed": false },
+          { "text": "Las Vegas", "points": 10, "isRevealed": false },
+          { "text": "New York", "points": 5, "isRevealed": false },
+          { "text": "Caribbean", "points": 3, "isRevealed": false },
+          { "text": "London", "points": 1, "isRevealed": false },
+          { "text": "Tokyo", "points": 1, "isRevealed": false }
+        ]
+      }
+    ]
+  }

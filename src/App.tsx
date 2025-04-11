@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Trophy, ArrowRight, Send } from 'lucide-react';
+import { Trophy, ArrowRight, Send, Heart } from 'lucide-react';
+import levelsData from './data/levels.json';
 
 interface Answer {
   text: string;
@@ -13,54 +14,15 @@ interface Level {
 }
 
 function App() {
-  const levels: Level[] = [
-    {
-      question: "Name a popular food item you'd find at a restaurant.",
-      answers: [
-        { text: "Pizza", points: 35, isRevealed: false },
-        { text: "Burger", points: 25, isRevealed: false },
-        { text: "Sushi", points: 15, isRevealed: false },
-        { text: "Pasta", points: 10, isRevealed: false },
-        { text: "Tacos", points: 8, isRevealed: false },
-        { text: "Salad", points: 4, isRevealed: false },
-        { text: "Steak", points: 2, isRevealed: false },
-        { text: "Ice Cream", points: 1, isRevealed: false },
-      ]
-    },
-    {
-      question: "Name something people do to stay healthy.",
-      answers: [
-        { text: "Exercise", points: 40, isRevealed: false },
-        { text: "Eat Well", points: 30, isRevealed: false },
-        { text: "Sleep", points: 15, isRevealed: false },
-        { text: "Drink Water", points: 8, isRevealed: false },
-        { text: "Meditate", points: 4, isRevealed: false },
-        { text: "Take Vitamins", points: 2, isRevealed: false },
-        { text: "Regular Checkups", points: 1, isRevealed: false },
-        { text: "Reduce Stress", points: 1, isRevealed: false },
-      ]
-    },
-    {
-      question: "Name a popular vacation destination.",
-      answers: [
-        { text: "Hawaii", points: 35, isRevealed: false },
-        { text: "Paris", points: 25, isRevealed: false },
-        { text: "Disney World", points: 20, isRevealed: false },
-        { text: "Las Vegas", points: 10, isRevealed: false },
-        { text: "New York", points: 5, isRevealed: false },
-        { text: "Caribbean", points: 3, isRevealed: false },
-        { text: "London", points: 1, isRevealed: false },
-        { text: "Tokyo", points: 1, isRevealed: false },
-      ]
-    }
-  ];
-
+  const levels: Level[] = levelsData.levels;
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(levels[0].question);
   const [answers, setAnswers] = useState<Answer[]>(levels[0].answers);
   const [guess, setGuess] = useState('');
   const [isWrongAnswer, setIsWrongAnswer] = useState(false);
+  const [lives, setLives] = useState(3);
+  const [showWrongOverlay, setShowWrongOverlay] = useState(false);
 
   const revealAnswer = (index: number) => {
     const answer = answers[index];
@@ -72,13 +34,60 @@ function App() {
     }
   };
 
+  const revealAllAnswers = () => {
+    setAnswers(answers.map(answer => ({ ...answer, isRevealed: true })));
+  };
+
+  const isMatchingAnswer = (guess: string, answer: string): boolean => {
+    const guessWords = guess.toLowerCase().trim().split(/\s+/);
+    const answerWords = answer.toLowerCase().split(/\s+/);
+
+    // Check for exact match first
+    if (guess.toLowerCase().trim() === answer.toLowerCase()) {
+      return true;
+    }
+
+    // Check for singular/plural variations
+    if (answer.toLowerCase().endsWith('s')) {
+      const singular = answer.toLowerCase().slice(0, -1);
+      if (guess.toLowerCase().trim() === singular) {
+        return true;
+      }
+    }
+    if (guess.toLowerCase().trim().endsWith('s')) {
+      const singular = guess.toLowerCase().trim().slice(0, -1);
+      if (singular === answer.toLowerCase()) {
+        return true;
+      }
+    }
+
+    // Check if the guess contains all main words from the answer
+    // or if the answer contains all words from the guess
+    const isGuessSubsetOfAnswer = guessWords.every(word => 
+      answerWords.some(answerWord => 
+        answerWord === word || 
+        answerWord.startsWith(word) || 
+        word.startsWith(answerWord)
+      )
+    );
+
+    const isAnswerSubsetOfGuess = answerWords.every(word => 
+      guessWords.some(guessWord => 
+        guessWord === word || 
+        guessWord.startsWith(word) || 
+        word.startsWith(guessWord)
+      )
+    );
+
+    return isGuessSubsetOfAnswer || isAnswerSubsetOfGuess;
+  };
+
   const handleGuess = (e: React.FormEvent) => {
     e.preventDefault();
-    const guessLower = guess.toLowerCase().trim();
     
     let foundMatch = false;
     answers.forEach((answer, index) => {
-      if (!answer.isRevealed && answer.text.toLowerCase() === guessLower) {
+      if (!answer.isRevealed && isMatchingAnswer(guess, answer.text)) {
         revealAnswer(index);
         foundMatch = true;
       }
@@ -86,7 +95,18 @@ function App() {
     
     if (!foundMatch) {
       setIsWrongAnswer(true);
-      setTimeout(() => setIsWrongAnswer(false), 500);
+      setShowWrongOverlay(true);
+      setLives(prev => {
+        const newLives = prev - 1;
+        if (newLives === 0) {
+          revealAllAnswers();
+        }
+        return newLives;
+      });
+      setTimeout(() => {
+        setIsWrongAnswer(false);
+        setShowWrongOverlay(false);
+      }, 1000);
     }
     
     setGuess('');
@@ -98,36 +118,64 @@ function App() {
     setCurrentQuestion(levels[nextIndex].question);
     setAnswers(levels[nextIndex].answers);
     setGuess('');
+    setLives(3);
   };
 
   return (
-    <div className="min-h-screen bg-blue-900 flex flex-col items-center p-8">
-      {/* Score Board */}
-      <div className="bg-black rounded-full p-8 mb-8 border-4 border-yellow-400">
-        <div className="flex items-center gap-4">
-          <Trophy size={32} className="text-yellow-400" />
-          <span className="text-6xl font-bold text-yellow-400">{totalScore}</span>
+    <div className="min-h-screen bg-gradient-to-b from-blue-900 to-blue-800 flex flex-col items-center p-8 relative">
+      {/* Wrong Answer Overlay */}
+      {showWrongOverlay && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="text-red-600 transform scale-150">
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </div>
+        </div>
+      )}
+
+      {/* Score and Lives */}
+      <div className="w-full max-w-4xl flex justify-between items-center mb-8">
+        {/* Score Board */}
+        <div className="bg-black rounded-full p-8 border-4 border-yellow-400 glow-effect">
+          <div className="flex items-center gap-4">
+            <Trophy size={32} className="text-yellow-400" />
+            <span className="text-6xl font-bold text-yellow-400">{totalScore}</span>
+          </div>
+        </div>
+
+        {/* Lives */}
+        <div className="flex gap-2">
+          {[...Array(3)].map((_, index) => (
+            <Heart
+              key={index}
+              size={40}
+              className={`${index < lives ? 'text-red-500 fill-red-500' : 'text-gray-400 fill-gray-400'} pulse-effect`}
+              style={{ animationDelay: `${index * 0.2}s` }}
+            />
+          ))}
         </div>
       </div>
 
       {/* Question Section */}
-      <div className="bg-black p-6 rounded-xl w-full max-w-4xl mb-8 border-4 border-blue-400">
+      <div className="bg-black p-6 rounded-xl w-full max-w-4xl mb-8 border-4 border-yellow-400 glow-effect">
         <div className="flex items-center justify-center">
-          <p className="text-white text-3xl font-bold text-center py-4">
+          <p className="text-yellow-400 text-4xl font-bold text-center py-4 float-effect">
             {currentQuestion}
           </p>
         </div>
       </div>
 
       {/* Answer Board */}
-      <div className="bg-black p-8 rounded-xl w-full max-w-4xl mb-8">
+      <div className="bg-black p-8 rounded-xl w-full max-w-4xl mb-8 border-4 border-yellow-400">
         <div className="grid grid-cols-2 gap-4">
           {answers.map((answer, index) => (
             <div
               key={index}
-              className={`h-20 rounded-lg flex items-center justify-between px-6 ${
+              className={`h-20 rounded-lg flex items-center justify-between px-6 transition-all duration-500 transform hover:scale-105 ${
                 answer.isRevealed 
-                  ? 'bg-blue-600 text-white' 
+                  ? 'bg-gradient-to-r from-yellow-600 to-yellow-400 text-white shadow-lg' 
                   : 'bg-gray-700 text-transparent'
               }`}
             >
@@ -149,13 +197,17 @@ function App() {
           value={guess}
           onChange={(e) => setGuess(e.target.value)}
           placeholder="Enter your guess..."
-          className={`flex-1 px-6 py-4 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+          className={`flex-1 px-6 py-4 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 ${
             isWrongAnswer ? 'shake bg-red-100' : 'bg-white'
           }`}
+          disabled={lives === 0}
         />
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg flex items-center gap-2 transition-colors duration-300"
+          className={`bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-8 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${
+            lives === 0 ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          disabled={lives === 0}
         >
           <span>Guess</span>
           <Send size={24} />
@@ -165,7 +217,7 @@ function App() {
       {/* Next Level Button */}
       <button
         onClick={nextLevel}
-        className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-full flex items-center gap-2 transition-colors duration-300"
+        className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-full flex items-center gap-2 transition-all duration-300 transform hover:scale-105 glow-effect"
       >
         <span>Next Level</span>
         <ArrowRight size={24} />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, ArrowRight, Send, Heart } from 'lucide-react';
+import { Trophy, ArrowRight, Send, Heart, Users } from 'lucide-react';
 import levelsData from './data/levels.json';
 
 interface Answer {
@@ -17,11 +17,13 @@ function App() {
   const levels: Level[] = levelsData.levels;
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
+  const [team1Score, setTeam1Score] = useState(0);
+  const [team2Score, setTeam2Score] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(levels[0].question);
   const [answers, setAnswers] = useState<Answer[]>(levels[0].answers);
   const [guess, setGuess] = useState('');
   const [isWrongAnswer, setIsWrongAnswer] = useState(false);
-  const [lives, setLives] = useState(3);
+  const [lives, setLives] = useState(4);
   const [showWrongOverlay, setShowWrongOverlay] = useState(false);
 
   const revealAnswer = (index: number) => {
@@ -118,7 +120,26 @@ function App() {
     setCurrentQuestion(levels[nextIndex].question);
     setAnswers(levels[nextIndex].answers);
     setGuess('');
-    setLives(3);
+    setLives(4);
+    setTotalScore(0);
+  };
+
+  const awardTeam = (team: 1 | 2) => {
+    if (team === 1) {
+      setTeam1Score(prev => prev + totalScore);
+    } else {
+      setTeam2Score(prev => prev + totalScore);
+    }
+    setTotalScore(0);
+  };
+
+  const isRoundComplete = lives === 0 || answers.every(answer => answer.isRevealed);
+
+  const getHeartColor = (index: number) => {
+    if (index < lives) {
+      return index === 0 ? 'text-green-500 fill-green-500' : 'text-red-500 fill-red-500';
+    }
+    return 'text-gray-400 fill-gray-400';
   };
 
   return (
@@ -135,9 +156,17 @@ function App() {
         </div>
       )}
 
-      {/* Score and Lives */}
+      {/* Team Scores */}
       <div className="w-full max-w-4xl flex justify-between items-center mb-8">
-        {/* Score Board */}
+        {/* Team 1 Score */}
+        <div className="bg-black rounded-full p-6 border-4 border-blue-400 glow-effect">
+          <div className="flex items-center gap-4">
+            <Users size={24} className="text-blue-400" />
+            <span className="text-4xl font-bold text-blue-400">Team 1: {team1Score}</span>
+          </div>
+        </div>
+
+        {/* Current Round Score */}
         <div className="bg-black rounded-full p-8 border-4 border-yellow-400 glow-effect">
           <div className="flex items-center gap-4">
             <Trophy size={32} className="text-yellow-400" />
@@ -145,17 +174,25 @@ function App() {
           </div>
         </div>
 
-        {/* Lives */}
-        <div className="flex gap-2">
-          {[...Array(3)].map((_, index) => (
-            <Heart
-              key={index}
-              size={40}
-              className={`${index < lives ? 'text-red-500 fill-red-500' : 'text-gray-400 fill-gray-400'} pulse-effect`}
-              style={{ animationDelay: `${index * 0.2}s` }}
-            />
-          ))}
+        {/* Team 2 Score */}
+        <div className="bg-black rounded-full p-6 border-4 border-red-400 glow-effect">
+          <div className="flex items-center gap-4">
+            <Users size={24} className="text-red-400" />
+            <span className="text-4xl font-bold text-red-400">Team 2: {team2Score}</span>
+          </div>
         </div>
+      </div>
+
+      {/* Lives */}
+      <div className="flex gap-2 mb-8">
+        {[...Array(4)].map((_, index) => (
+          <Heart
+            key={index}
+            size={40}
+            className={`${getHeartColor(index)} pulse-effect`}
+            style={{ animationDelay: `${index * 0.2}s` }}
+          />
+        ))}
       </div>
 
       {/* Question Section */}
@@ -169,7 +206,7 @@ function App() {
 
       {/* Answer Board */}
       <div className="bg-black p-8 rounded-xl w-full max-w-4xl mb-8 border-4 border-yellow-400">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-4">
           {answers.map((answer, index) => (
             <div
               key={index}
@@ -213,6 +250,30 @@ function App() {
           <Send size={24} />
         </button>
       </form>
+
+      {/* Team Award Buttons */}
+      <div className="flex gap-4 mb-4 w-full max-w-4xl justify-center">
+        <button
+          onClick={() => awardTeam(1)}
+          disabled={!isRoundComplete || totalScore === 0}
+          className={`bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${
+            (!isRoundComplete || totalScore === 0) ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          <span>Award Team 1</span>
+          <Trophy size={24} />
+        </button>
+        <button
+          onClick={() => awardTeam(2)}
+          disabled={!isRoundComplete || totalScore === 0}
+          className={`bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${
+            (!isRoundComplete || totalScore === 0) ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          <span>Award Team 2</span>
+          <Trophy size={24} />
+        </button>
+      </div>
 
       {/* Next Level Button */}
       <button

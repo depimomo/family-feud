@@ -1,36 +1,75 @@
 {
   "levels": [
     {
-      "question": "Name a popular food item you'd find at a restaurant.",
+      "id": "WFO - A",
+      "question": "What's something people do to look busy at work?",
       "answers": [
-        { "text": "Pizza", "points": 35, "isRevealed": false },
-        { "text": "Burger", "points": 25, "isRevealed": false },
-        { "text": "Sushi", "points": 15, "isRevealed": false },
-        { "text": "Pasta", "points": 10, "isRevealed": false },
-        { "text": "Tacos", "points": 8, "isRevealed": false },
-        { "text": "Salad", "points": 7, "isRevealed": false }
+        { "text": "Typing furiously with no actual task", "points": 25, "isRevealed": false },
+        { "text": "Switching between tabs quickly", "points": 20, "isRevealed": false },
+        { "text": "Walking around with a notebook", "points": 18, "isRevealed": false },
+        { "text": "Joining every meeting possible", "points": 15, "isRevealed": false },
+        { "text": "Staring seriously at the monitor", "points": 12, "isRevealed": false },
+        { "text": "Talking loudly about deadlines", "points": 10, "isRevealed": false }
       ]
     },
     {
-      "question": "Name something people do to stay healthy.",
+      "id": "WFO - B",
+      "question": "What's the first thing people do when they arrive at the office?",
       "answers": [
-        { "text": "Exercise", "points": 40, "isRevealed": false },
-        { "text": "Eat Well", "points": 30, "isRevealed": false },
-        { "text": "Sleep", "points": 15, "isRevealed": false },
-        { "text": "Drink Water", "points": 8, "isRevealed": false },
-        { "text": "Meditate", "points": 4, "isRevealed": false },
-        { "text": "Take Vitamins", "points": 3, "isRevealed": false }
+        { "text": "Make coffee or tea", "points": 30, "isRevealed": false },
+        { "text": "Open Slack", "points": 20, "isRevealed": false },
+        { "text": "Say hi to coworkers", "points": 15, "isRevealed": false },
+        { "text": "Check calendar/meeting schedule", "points": 13, "isRevealed": false },
+        { "text": "Complain about traffic/WFO life", "points": 12, "isRevealed": false },
+        { "text": "Sit quietly pretending to have work already", "points": 10, "isRevealed": false }
       ]
     },
     {
-      "question": "Name a popular vacation destination.",
+      "id": "Meetings - A",
+      "question": "What's a common excuse for people when miss a meeting?",
       "answers": [
-        { "text": "Hawaii", "points": 35, "isRevealed": false },
-        { "text": "Paris", "points": 25, "isRevealed": false },
-        { "text": "Disney World", "points": 20, "isRevealed": false },
-        { "text": "Las Vegas", "points": 10, "isRevealed": false },
-        { "text": "New York", "points": 5, "isRevealed": false },
-        { "text": "Caribbean", "points": 5, "isRevealed": false }
+        { "text": "Didn't get the invite", "points": 25, "isRevealed": false },
+        { "text": "Internet issues", "points": 20, "isRevealed": false },
+        { "text": "Had another meeting", "points": 18, "isRevealed": false },
+        { "text": "Thought it was tomorrow", "points": 15, "isRevealed": false },
+        { "text": "Time zone confusion", "points": 12, "isRevealed": false },
+        { "text": "Was grabbing coffee/food", "points": 10, "isRevealed": false }
+      ]
+    },
+    {
+      "id": "Meetings - B",
+      "question": "What's something people usually say to end a meeting?",
+      "answers": [
+        { "text": "Let's take this offline", "points": 25, "isRevealed": false },
+        { "text": "I'll follow up via email", "points": 20, "isRevealed": false },
+        { "text": "Great discussion, team", "points": 18, "isRevealed": false },
+        { "text": "We're out of time", "points": 15, "isRevealed": false },
+        { "text": "Let's revisit later on that", "points": 12, "isRevealed": false },
+        { "text": "Thanks, everyone!", "points": 10, "isRevealed": false }
+      ]
+    },
+    {
+      "id": "Teams - A",
+      "question": "What's the first thing that a new joiner usually asks?",
+      "answers": [
+        { "text": "Where can I find the docs?", "points": 26, "isRevealed": false },
+        { "text": "What does this acronym mean?", "points": 21, "isRevealed": false },
+        { "text": "Who owns this?", "points": 17, "isRevealed": false },
+        { "text": "How do I access the repo?", "points": 14, "isRevealed": false },
+        { "text": "When's the next team sync?", "points": 12, "isRevealed": false },
+        { "text": "Where's the toilet?", "points": 10, "isRevealed": false }
+      ]
+    },
+    {
+      "id": "Teams - B",
+      "question": "What's a sign that the team is currently growing quite fast?",
+      "answers": [
+        { "text": "New faces in every meeting", "points": 24, "isRevealed": false },
+        { "text": "Too many Slack channels", "points": 22, "isRevealed": false },
+        { "text": "Onboarding never ends", "points": 19, "isRevealed": false },
+        { "text": "Everyone's calendar is full", "points": 16, "isRevealed": false },
+        { "text": "\"Let me check first with X\"", "points": 11, "isRevealed": false },
+        { "text": "Random people added in PR comments", "points": 8, "isRevealed": false }
       ]
     }
   ]

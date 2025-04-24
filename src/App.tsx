@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, ArrowRight, Send, Heart, Users } from 'lucide-react';
+import { Trophy, Send, Heart, Users } from 'lucide-react';
 import levelsData from './data/levels.json';
 
 interface Answer {
@@ -9,13 +9,13 @@ interface Answer {
 }
 
 interface Level {
+  id: string;
   question: string;
   answers: Answer[];
 }
 
 function App() {
   const levels: Level[] = levelsData.levels;
-  const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [team1Score, setTeam1Score] = useState(0);
   const [team2Score, setTeam2Score] = useState(0);
@@ -30,7 +30,7 @@ function App() {
     const answer = answers[index];
     if (!answer.isRevealed) {
       setTotalScore(prev => prev + answer.points);
-      setAnswers(answers.map((a, i) => 
+      setAnswers(answers.map((a, i) =>
         i === index ? { ...a, isRevealed: true } : a
       ));
     }
@@ -39,6 +39,10 @@ function App() {
   const revealAllAnswers = () => {
     setAnswers(answers.map(answer => ({ ...answer, isRevealed: true })));
   };
+
+  const shouldRevealAllAnswers = (remainingLives: number) => {
+    return remainingLives === 0;
+  }
 
   const isMatchingAnswer = (guess: string, answer: string): boolean => {
     const guessWords = guess.toLowerCase().trim().split(/\s+/);
@@ -65,28 +69,20 @@ function App() {
 
     // Check if the guess contains all main words from the answer
     // or if the answer contains all words from the guess
-    const isGuessSubsetOfAnswer = guessWords.every(word => 
-      answerWords.some(answerWord => 
-        answerWord === word || 
-        answerWord.startsWith(word) || 
+    const isGuessSubsetOfAnswer = guessWords.every(word =>
+      answerWords.some(answerWord =>
+        answerWord === word ||
+        answerWord.startsWith(word) ||
         word.startsWith(answerWord)
       )
     );
 
-    const isAnswerSubsetOfGuess = answerWords.every(word => 
-      guessWords.some(guessWord => 
-        guessWord === word || 
-        guessWord.startsWith(word) || 
-        word.startsWith(guessWord)
-      )
-    );
-
-    return isGuessSubsetOfAnswer || isAnswerSubsetOfGuess;
+    return isGuessSubsetOfAnswer;
   };
 
   const handleGuess = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     let foundMatch = false;
     answers.forEach((answer, index) => {
       if (!answer.isRevealed && isMatchingAnswer(guess, answer.text)) {
@@ -94,13 +90,13 @@ function App() {
         foundMatch = true;
       }
     });
-    
+
     if (!foundMatch) {
       setIsWrongAnswer(true);
       setShowWrongOverlay(true);
       setLives(prev => {
         const newLives = prev - 1;
-        if (newLives === 0) {
+        if (shouldRevealAllAnswers(newLives)) {
           revealAllAnswers();
         }
         return newLives;
@@ -110,15 +106,19 @@ function App() {
         setShowWrongOverlay(false);
       }, 1000);
     }
-    
+
     setGuess('');
   };
 
-  const nextLevel = () => {
-    const nextIndex = (currentLevelIndex + 1) % levels.length;
-    setCurrentLevelIndex(nextIndex);
-    setCurrentQuestion(levels[nextIndex].question);
-    setAnswers(levels[nextIndex].answers);
+  const goToLevel = (id: string) => {
+    const level = levels.find(level => level.id === id);
+    if (!level) {
+      console.error(`Level with id "${id}" not found.`);
+      return;
+    }
+
+    setCurrentQuestion(level?.question);
+    setAnswers(level?.answers);
     setGuess('');
     setLives(4);
     setTotalScore(0);
@@ -167,7 +167,9 @@ function App() {
         </div>
 
         {/* Current Round Score */}
-        <div className="bg-black rounded-full p-8 border-4 border-yellow-400 glow-effect">
+        <div
+          onClick={revealAllAnswers}
+          className="bg-black rounded-full p-8 border-4 border-yellow-400 glow-effect">
           <div className="flex items-center gap-4">
             <Trophy size={32} className="text-yellow-400" />
             <span className="text-6xl font-bold text-yellow-400">{totalScore}</span>
@@ -210,11 +212,10 @@ function App() {
           {answers.map((answer, index) => (
             <div
               key={index}
-              className={`h-20 rounded-lg flex items-center justify-between px-6 transition-all duration-500 transform hover:scale-105 ${
-                answer.isRevealed 
-                  ? 'bg-gradient-to-r from-yellow-600 to-yellow-400 text-white shadow-lg' 
-                  : 'bg-gray-700 text-transparent'
-              }`}
+              className={`h-20 rounded-lg flex items-center justify-between px-6 transition-all duration-500 transform hover:scale-105 ${answer.isRevealed
+                ? 'bg-gradient-to-r from-yellow-600 to-yellow-400 text-white shadow-lg'
+                : 'bg-gray-700 text-transparent'
+                }`}
             >
               <span className="text-2xl font-bold">
                 {answer.isRevealed ? answer.text : 'X'}
@@ -234,17 +235,15 @@ function App() {
           value={guess}
           onChange={(e) => setGuess(e.target.value)}
           placeholder="Enter your guess..."
-          className={`flex-1 px-6 py-4 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 ${
-            isWrongAnswer ? 'shake bg-red-100' : 'bg-white'
-          }`}
-          disabled={lives === 0}
+          className={`flex-1 px-6 py-4 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 ${isWrongAnswer ? 'shake bg-red-100' : 'bg-white'
+            }`}
+          disabled={shouldRevealAllAnswers(lives)}
         />
         <button
           type="submit"
-          className={`bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-8 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${
-            lives === 0 ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          disabled={lives === 0}
+          className={`bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-8 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${shouldRevealAllAnswers(lives) ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          disabled={shouldRevealAllAnswers(lives)}
         >
           <span>Guess</span>
           <Send size={24} />
@@ -256,9 +255,8 @@ function App() {
         <button
           onClick={() => awardTeam(1)}
           disabled={!isRoundComplete || totalScore === 0}
-          className={`bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${
-            (!isRoundComplete || totalScore === 0) ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
+          className={`bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${(!isRoundComplete || totalScore === 0) ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
         >
           <span>Award Team 1</span>
           <Trophy size={24} />
@@ -266,23 +264,25 @@ function App() {
         <button
           onClick={() => awardTeam(2)}
           disabled={!isRoundComplete || totalScore === 0}
-          className={`bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${
-            (!isRoundComplete || totalScore === 0) ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
+          className={`bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${(!isRoundComplete || totalScore === 0) ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
         >
           <span>Award Team 2</span>
           <Trophy size={24} />
         </button>
       </div>
 
-      {/* Next Level Button */}
-      <button
-        onClick={nextLevel}
-        className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-full flex items-center gap-2 transition-all duration-300 transform hover:scale-105 glow-effect"
-      >
-        <span>Next Level</span>
-        <ArrowRight size={24} />
-      </button>
+      {/* Navigation Buttons */}
+      <div className="flex flex-row space-x-2 overflow-x-auto bg-transparent">
+        {levels.map(level => (
+          <button
+            onClick={() => goToLevel(level.id)}
+            className={`bg-green-400 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full flex items-center gap-2 transition-all duration-300 transform hover:scale-105`}
+          >
+            {level.id}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

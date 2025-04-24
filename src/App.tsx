@@ -41,7 +41,7 @@ function App() {
   };
 
   const shouldRevealAllAnswers = (remainingLives: number) => {
-    return remainingLives < 0;
+    return remainingLives === 0;
   }
 
   const isMatchingAnswer = (guess: string, answer: string): boolean => {
@@ -77,15 +77,7 @@ function App() {
       )
     );
 
-    const isAnswerSubsetOfGuess = answerWords.every(word =>
-      guessWords.some(guessWord =>
-        guessWord === word ||
-        guessWord.startsWith(word) ||
-        word.startsWith(guessWord)
-      )
-    );
-
-    return isGuessSubsetOfAnswer || isAnswerSubsetOfGuess;
+    return isGuessSubsetOfAnswer;
   };
 
   const handleGuess = (e: React.FormEvent) => {

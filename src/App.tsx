@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, ArrowRight, Send, Heart } from 'lucide-react';
+import { Trophy, Send, Heart } from 'lucide-react';
 import levelsData from './data/levels.json';
 
 interface Answer {
@@ -9,13 +9,13 @@ interface Answer {
 }
 
 interface Level {
+  id: string;
   question: string;
   answers: Answer[];
 }
 
 function App() {
   const levels: Level[] = levelsData.levels;
-  const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(levels[0].question);
   const [answers, setAnswers] = useState<Answer[]>(levels[0].answers);
@@ -37,6 +37,10 @@ function App() {
   const revealAllAnswers = () => {
     setAnswers(answers.map(answer => ({ ...answer, isRevealed: true })));
   };
+
+  const shouldRevealAllAnswers = (remainingLives: number) => {
+    return remainingLives < 0;
+  }
 
   const isMatchingAnswer = (guess: string, answer: string): boolean => {
     const guessWords = guess.toLowerCase().trim().split(/\s+/);
@@ -98,7 +102,7 @@ function App() {
       setShowWrongOverlay(true);
       setLives(prev => {
         const newLives = prev - 1;
-        if (newLives === 0) {
+        if (shouldRevealAllAnswers(newLives)) {
           revealAllAnswers();
         }
         return newLives;
@@ -112,14 +116,19 @@ function App() {
     setGuess('');
   };
 
-  const nextLevel = () => {
-    const nextIndex = (currentLevelIndex + 1) % levels.length;
-    setCurrentLevelIndex(nextIndex);
-    setCurrentQuestion(levels[nextIndex].question);
-    setAnswers(levels[nextIndex].answers);
+  const goToLevel = (id: string) => {
+    const level = levels.find(level => level.id === id);
+    if (!level) {
+      console.error(`Level with id "${id}" not found.`);
+      return;
+    }
+
+    setCurrentQuestion(level?.question);
+    setAnswers(level?.answers);
     setGuess('');
     setLives(3);
-  };
+    setTotalScore(0);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-blue-800 flex flex-col items-center p-8 relative">
@@ -138,7 +147,9 @@ function App() {
       {/* Score and Lives */}
       <div className="w-full max-w-4xl flex justify-between items-center mb-8">
         {/* Score Board */}
-        <div className="bg-black rounded-full p-8 border-4 border-yellow-400 glow-effect">
+        <div 
+          onClick={ revealAllAnswers }
+          className="bg-black rounded-full p-8 border-4 border-yellow-400 glow-effect">
           <div className="flex items-center gap-4">
             <Trophy size={32} className="text-yellow-400" />
             <span className="text-6xl font-bold text-yellow-400">{totalScore}</span>
@@ -169,7 +180,7 @@ function App() {
 
       {/* Answer Board */}
       <div className="bg-black p-8 rounded-xl w-full max-w-4xl mb-8 border-4 border-yellow-400">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {answers.map((answer, index) => (
             <div
               key={index}
@@ -200,28 +211,31 @@ function App() {
           className={`flex-1 px-6 py-4 rounded-lg text-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 ${
             isWrongAnswer ? 'shake bg-red-100' : 'bg-white'
           }`}
-          disabled={lives === 0}
+          disabled={shouldRevealAllAnswers(lives)}
         />
         <button
           type="submit"
           className={`bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-8 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${
-            lives === 0 ? 'opacity-50 cursor-not-allowed' : ''
+            shouldRevealAllAnswers(lives) ? 'opacity-50 cursor-not-allowed' : ''
           }`}
-          disabled={lives === 0}
+          disabled={shouldRevealAllAnswers(lives)}
         >
           <span>Guess</span>
           <Send size={24} />
         </button>
       </form>
 
-      {/* Next Level Button */}
-      <button
-        onClick={nextLevel}
-        className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-full flex items-center gap-2 transition-all duration-300 transform hover:scale-105 glow-effect"
-      >
-        <span>Next Level</span>
-        <ArrowRight size={24} />
-      </button>
+      {/* Navigation Buttons */}
+      <div className="flex flex-row space-x-2 overflow-x-auto bg-transparent">
+        { levels.map(level => (
+          <button 
+            onClick={() => goToLevel(level.id)}
+            className={`bg-green-400 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full flex items-center gap-2 transition-all duration-300 transform hover:scale-105`}
+            >
+            { level.id }
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
